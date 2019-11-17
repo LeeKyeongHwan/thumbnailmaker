@@ -8,7 +8,7 @@
         :width="width"
         :height="height"
         :file="file"
-        :colors="colors"
+        :hex-color="hexColor"
       />
     </section>
     <section class="form_wrap">
@@ -84,11 +84,11 @@
           label-align-sm="right"
           label-for="Color"
         >
-          <chrome-picker v-model="colors" />
+          <chrome-picker :value="colors" @input="updateColors" />
         </b-form-group>
 
         <div>
-          <b-button block variant="primary">
+          <b-button block variant="primary" @click="downloadImg">
             Download
           </b-button>
         </div>
@@ -110,8 +110,9 @@ export default {
   data () {
     return {
       ctx: null,
-      text: '',
+      text: 'Thumnbnail-maker 👍',
       fontFamilyList: {
+        'Roboto': 'Roboto',
         'Noto Sans KR': 'Noto Sans KR',
         'Nanum Gothic': 'Nanum Gothic',
         'Nanum Myeongjo': 'Nanum Myeongjo',
@@ -120,31 +121,51 @@ export default {
       },
       fontFamily: 'Noto Sans KR',
       fontSizeList: {
-        14: '14px',
-        18: '18px',
-        24: '24px',
         28: '28px',
-        32: '32px'
+        36: '36px',
+        42: '42px',
+        50: '50px',
+        60: '60px'
       },
-      fontSize: 28,
+      fontSize: 42,
       width: 600,
       height: 300,
       file: null,
-      colors: {}
+      colors: '',
+      hexColor: ''
+    }
+  },
+  mounted () {
+    this.getRandomColor()
+  },
+  methods: {
+    downloadImg () {
+      const canvas = document.getElementById('thumbnail')
+      const url = canvas.toDataURL()
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'download.png'
+      a.click()
+    },
+    updateColors (colors) {
+      this.hexColor = colors.hex
+    },
+    getRandomColor () {
+      this.$nextTick(() => {
+        const color = '#' + Math.floor(Math.random() * 16777215).toString(16)
+        this.colors = color
+        this.hexColor = color
+      })
     }
   }
+
 }
 </script>
 
 <style lang="scss" scoped>
 .container-fluid { padding: 1rem; }
-
 .thumbnail_wrap { margin-bottom: 1rem; }
-#thumbnail {
-  margin: 0 auto;
-  border: 1px solid red;
-}
-
+#thumbnail { margin: 0 auto; }
 .form_wrap {
   margin: 0 auto;
   min-width: 344px;

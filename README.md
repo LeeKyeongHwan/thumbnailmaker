@@ -1,5 +1,4 @@
 # thumbnailmaker
-
 > My sweet Nuxt.js project
 
 ## Build Setup

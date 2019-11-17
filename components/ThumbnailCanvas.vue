@@ -2,10 +2,8 @@
   <canvas
     id="thumbnail"
     ref="canvas"
-    :style="{
-      width: `${width}px`,
-      height: `${height}px`
-    }"
+    :width="width"
+    :height="height"
   />
 </template>
 
@@ -36,45 +34,106 @@ export default {
       default: 28
     },
     file: {
-      type: Object,
+      type: File,
       default: null
     },
-    colors: {
-      type: Object,
-      default: null
+    hexColor: {
+      type: String,
+      default: ''
+    }
+  },
+  data () {
+    return {
+      canvas: null,
+      bgFile: null
     }
   },
   watch: {
+    width () {
+      this.paint()
+    },
+    height () {
+      this.paint()
+    },
     text () {
-      this.setText()
+      this.paint()
     },
     fontFamily () {
-      this.setText()
+      this.paint()
     },
     fontSize () {
-      this.setText()
+      this.paint()
     },
-    file () {},
-    colors: {
-      deep: true,
-      handler (newValue, oldValue) {
-        this.setBgColor()
-      }
+    hexColor () {
+      this.paint()
+    },
+    file (file) {
+      this.bgFile = file
+      this.paint()
     }
   },
   mounted () {
-    this.ctx = this.$refs.canvas.getContext('2d')
     this.init()
+    this.paint()
   },
   methods: {
-    init () {},
+    init () {
+      this.canvas = this.$refs.canvas
+    },
+    paint () {
+      this.$nextTick(() => {
+        // FIXME: 이미지 로드되는 순서 동기화 시켜야 함
+        this.setBgColor()
+        this.setImage()
+        this.setText()
+      })
+    },
     setText () {
-      this.ctx.font = `${this.fontSize}px ${this.fontFamily}`
-      this.ctx.fillText(this.text, 10, 50)
+      const ctx = this.canvas.getContext('2d')
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.font = `${this.fontSize}px ${this.fontFamily}`
+      ctx.fillStyle = 'white'
+      ctx.fillText(this.text, this.canvas.width / 2, this.canvas.height / 2)
     },
     setBgColor () {
-      this.ctx.fillStyle = this.colors.hex || '#54ABCA'
-      this.ctx.fillRect(0, 0, this.width, this.height)
+      const ctx = this.canvas.getContext('2d')
+      ctx.fillStyle = this.hexColor
+      ctx.fillRect(0, 0, this.width, this.height)
+    },
+    setImage () {
+      const file = this.bgFile
+
+      if (!file) {
+        return
+      }
+
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => {
+        const ctx = this.canvas.getContext('2d')
+
+        const img = new Image()
+        img.src = reader.result
+        img.onload = () => {
+          // 가운데 정렬
+          const x = this.canvas.width / 2 - img.width / 2
+          const y = this.canvas.height / 2 - img.height / 2
+          ctx.drawImage(img, x, y)
+        }
+
+        // FIXME: object-fit: cover
+        /* const ratio = img.width / img.height
+        let newWidth = this.canvas.width
+        let newHeight = newWidth / ratio
+        if (newHeight < this.canvas.height) {
+          newHeight = this.canvas.height
+          newWidth = newHeight * ratio
+        }
+        const xOffset = newWidth > this.canvas.width ? (this.canvas.width - newWidth) / 2 : 0
+        const yOffset = newHeight > this.canvas.height ? (this.canvas.height - newHeight) / 2 : 0
+        ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight) */
+      }
     }
   }
 }
