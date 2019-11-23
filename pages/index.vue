@@ -141,7 +141,7 @@ export default {
   methods: {
     downloadImg () {
       const canvas = document.getElementById('thumbnail')
-      const url = canvas.toDataURL()
+      const url = canvas.toDataURL('image/png')
       const a = document.createElement('a')
       a.href = url
       a.download = 'download.png'
